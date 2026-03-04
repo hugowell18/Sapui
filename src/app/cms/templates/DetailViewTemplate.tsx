@@ -5,6 +5,7 @@ import { DescriptionGridBlock } from "../components/DescriptionGridBlock";
 import { TimelineBlock } from "../components/TimelineBlock";
 import { DataTableBlock } from "../components/DataTableBlock";
 import { ActionBarBlock } from "../components/ActionBarBlock";
+import { CmsPageConfig } from "../schema";
 
 const statusColors: Record<string, string> = {
     "Open": "bg-[#0070f2] text-white",
@@ -20,10 +21,11 @@ const priorityColors: Record<string, string> = {
     "Low": "bg-[#107e3e] text-white",
 };
 
-export function DetailViewTemplate({ config, context }: { config: any; context?: any }) {
+export function DetailViewTemplate({ config, context }: { config: CmsPageConfig; context?: any }) {
     const data = context?.data || {};
     const templateConfig = config.templateConfig || {};
     const header = templateConfig.header || {};
+    const tabs = Array.isArray(templateConfig.tabs) ? templateConfig.tabs : [];
 
     // Render sub-blocks based on config type
     const renderBlock = (blockConfig: any) => {
@@ -76,10 +78,10 @@ export function DetailViewTemplate({ config, context }: { config: any; context?:
 
             {/* Tabs / Layout Area */}
             <div className="flex-1 overflow-auto p-6">
-                {templateConfig.tabs ? (
-                    <Tabs defaultValue={templateConfig.tabs[0]?.id} className="w-full">
+                {tabs.length > 0 ? (
+                    <Tabs defaultValue={tabs[0]?.id} className="w-full">
                         <TabsList className="bg-white border-b border-gray-200 w-full justify-start rounded-none h-auto p-0">
-                            {templateConfig.tabs.map((tab: any) => (
+                            {tabs.map((tab: any) => (
                                 <TabsTrigger
                                     key={tab.id}
                                     value={tab.id}
@@ -90,9 +92,9 @@ export function DetailViewTemplate({ config, context }: { config: any; context?:
                             ))}
                         </TabsList>
 
-                        {templateConfig.tabs.map((tab: any) => (
+                        {tabs.map((tab: any) => (
                             <TabsContent key={tab.id} value={tab.id} className="mt-6">
-                                {tab.blocks.map((block: any, idx: number) => (
+                                {(Array.isArray(tab.blocks) ? tab.blocks : []).map((block: any, idx: number) => (
                                     <div key={idx} className="mb-6">
                                         {renderBlock(block)}
                                     </div>

@@ -11,14 +11,39 @@ const statusColors: Record<string, string> = {
     "Pending Approval": "bg-[#e9730c] text-white",
 };
 
-export function DataTableBlock({ config, context }: { config: any; context?: any }) {
+type DataTableColumnType = "text" | "badge" | "link" | "currency" | "date" | "datetime" | "number";
+type DataTableColumn = {
+    key: string;
+    label: string;
+    type?: DataTableColumnType;
+    align?: "left" | "right";
+};
+type DataTableConfig = {
+    dataBinding?: string;
+    dataSourceEndpoint?: string;
+    rowClickAction?: "none" | "navigate";
+    columns: DataTableColumn[];
+};
+
+export function DataTableBlock({ config, context }: { config: DataTableConfig; context?: { data?: unknown } }) {
     const navigate = useNavigate();
 
     // 如果配置了 dataBinding，则从外部传入的 context 提取本地数组数据
     // 否则作为 PoC 继续使用全局 mockOrders 模拟拉取全部数据
-    const data = config.dataBinding && context?.data ?
-        (resolvePath(context.data, config.dataBinding) || []) :
-        mockOrders;
+    const resolveDataSource = () => {
+        if (config.dataBinding && context?.data) {
+            return resolvePath(context.data, config.dataBinding);
+        }
+        if (context?.data !== undefined) {
+            if (Array.isArray(context.data)) return context.data;
+            if (context.data && typeof context.data === "object") return [context.data];
+        }
+        return mockOrders;
+    };
+
+    const resolvedData = resolveDataSource();
+    const data = Array.isArray(resolvedData) ? resolvedData : [];
+    const hasInvalidBinding = config.dataBinding && resolvedData !== undefined && !Array.isArray(resolvedData);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -55,9 +80,9 @@ export function DataTableBlock({ config, context }: { config: any; context?: any
                     <tbody>
                         {data.map((row: any, index: number) => (
                             <tr
-                                key={row.id}
+                                key={row?.id ?? index}
                                 onClick={() => {
-                                    if (config.rowClickAction === "navigate") navigate(`/orders/${row.id}`)
+                                    if (config.rowClickAction === "navigate" && row?.id) navigate(`/orders/${row.id}`)
                                 }}
                                 className={`border-b border-gray-200 hover:bg-[#f5f6f7] cursor-pointer transition-colors ${index % 2 === 0 ? "bg-white" : "bg-[#fafbfc]"
                                     }`}
@@ -92,6 +117,11 @@ export function DataTableBlock({ config, context }: { config: any; context?: any
                 <p className="text-xs text-gray-600">
                     Showing {data.length} records (Mocked Data Source: {config.dataSourceEndpoint})
                 </p>
+                {hasInvalidBinding && (
+                    <p className="text-xs text-red-500 mt-1">
+                        Invalid data binding: expected an array at "{config.dataBinding}".
+                    </p>
+                )}
             </div>
         </>
     );

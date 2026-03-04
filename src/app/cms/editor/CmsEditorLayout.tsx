@@ -77,7 +77,11 @@ export function CmsEditorLayout({
                                 const newConfig = JSON.parse(JSON.stringify(draftConfig));
                                 const normalized = normalizeCmsConfig(newConfig);
                                 setPersistedConfig(normalized);
-                                localStorage.setItem(storageKey, JSON.stringify(normalized));
+                                try {
+                                    localStorage.setItem(storageKey, JSON.stringify(normalized));
+                                } catch (error) {
+                                    console.error("Failed to save config to localStorage", error);
+                                }
                                 setIsEditMode(false);
                             }}
                             onDiscard={() => {
