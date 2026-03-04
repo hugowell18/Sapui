@@ -15,6 +15,10 @@ export interface Order {
   notes: string;
   items: OrderItem[];
   history: HistoryEntry[];
+  shippingInfo?: {
+    destination: string;
+    method: string;
+  };
 }
 
 export interface OrderItem {
@@ -99,7 +103,11 @@ export const mockOrders: Order[] = [
         action: "Updated",
         details: "Added delivery instructions"
       }
-    ]
+    ],
+    shippingInfo: {
+      destination: "New York, NY",
+      method: "Next Day Air"
+    }
   },
   {
     id: "SO-2026-0002",
@@ -160,7 +168,11 @@ export const mockOrders: Order[] = [
         action: "Processing",
         details: "Picking started for all items"
       }
-    ]
+    ],
+    shippingInfo: {
+      destination: "Oakland, CA",
+      method: "Ground Shipping"
+    }
   },
   {
     id: "SO-2026-0003",
